@@ -4,5 +4,9 @@
   "description": "Marvin's Blog",
   "repository": "git@github.com:marvin5064/marvin5064.github.io.git",
   "author": "marvin cai <marvin5064@gmail.com>",
-  "license": "MIT"
+  "license": "MIT",
+  "scripts": {
+    "dev": "vuepress dev docs",
+    "build": "vuepress build docs"
+  }
 }
