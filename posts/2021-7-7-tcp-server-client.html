@@ -1,0 +1,128 @@
+<!DOCTYPE html>
+<html lang="en-US">
+  <head>
+    <meta charset="utf-8">
+    <meta name="viewport" content="width=device-width,initial-scale=1">
+    <title>TCP Server and Client | Marvin CAI</title>
+    <meta name="generator" content="VuePress 1.8.2">
+    
+    <meta name="description" content="">
+    
+    <link rel="preload" href="/assets/css/0.styles.07529222.css" as="style"><link rel="preload" href="/assets/js/app.90a3f4cf.js" as="script"><link rel="preload" href="/assets/js/12.ec5ac930.js" as="script"><link rel="prefetch" href="/assets/js/10.36fa7555.js"><link rel="prefetch" href="/assets/js/11.0d3472e7.js"><link rel="prefetch" href="/assets/js/2.cb0e8d88.js"><link rel="prefetch" href="/assets/js/3.31aec5af.js"><link rel="prefetch" href="/assets/js/4.138cd4c3.js"><link rel="prefetch" href="/assets/js/5.2c70b4c4.js"><link rel="prefetch" href="/assets/js/6.8af3061a.js"><link rel="prefetch" href="/assets/js/7.a55b26b0.js"><link rel="prefetch" href="/assets/js/8.81b9bfd3.js"><link rel="prefetch" href="/assets/js/9.dcf1d5a7.js">
+    <link rel="stylesheet" href="/assets/css/0.styles.07529222.css">
+  </head>
+  <body>
+    <div id="app" data-server-rendered="true"><section id="global-layout" data-v-4fb7124e><header class="header" data-v-61b62cbe data-v-4fb7124e><div class="header-navbar" data-v-61b62cbe><div class="flex-xbc main header-nav" data-v-61b62cbe><div class="nav-link" data-v-61b62cbe><!----> <nav class="link-list" data-v-61b62cbe><a href="/" class="list-item router-link-active" data-v-61b62cbe>Home</a><a href="/posts/" class="list-item router-link-active" data-v-61b62cbe>Posts</a><a href="/tag/" class="list-item" data-v-61b62cbe>Tags</a><a href="https://www.marvincai.com/" target="_blank" rel="noopener noreferrer" class="list-item" data-v-61b62cbe>More</a></nav></div> <div class="search-box" data-v-61b62cbe><input aria-label="Search" autocomplete="off" spellcheck="false" value=""> <!----></div></div></div> </header> <!----> <section class="page" data-v-4fb7124e data-v-4fb7124e><section class="info" style="background-image:url(https://i.picsum.photos/id/884/536/354.jpg?hmac=CqsELRDUWEC8Iah_3JKD1oWJdgxnpBffbkDAckj95B4);" data-v-52fe94f0><article class="main info-content" data-v-a5c9dc12 data-v-52fe94f0><div class="content-header" data-v-a5c9dc12><h1 class="header-title" data-v-a5c9dc12>TCP Server and Client</h1></div> <div class="flex-wcc content-tag" data-v-a5c9dc12><div class="inblock tag-list" data-v-a5c9dc12><a href="/category/blog/" class="tag-text" data-v-a5c9dc12>blog
+      </a></div> <span class="tag-space" data-v-a5c9dc12>/</span> <div class="inblock tag-list" data-v-a5c9dc12><a href="/tag/tcp/" class="tag-text" data-v-a5c9dc12>tcp
+      </a><a href="/tag/server/" class="tag-text" data-v-a5c9dc12>server
+      </a><a href="/tag/client/" class="tag-text" data-v-a5c9dc12>client
+      </a></div></div> <div class="content content__default" data-v-a5c9dc12><p>Has been a while haven't write any blog, I am just trying to pick it up a bit. Recently, played around TCP a bit, even simpler than WebSocket(which I tried before) just write up a note the simple playground.</p> <p>Before share the play code here are some details about the difference between <a href="https://stackoverflow.com/questions/16945345/differences-between-tcp-sockets-and-web-sockets-one-more-time" target="_blank" rel="noopener noreferrer">TCP and WebSocket<span><svg xmlns="http://www.w3.org/2000/svg" aria-hidden="true" focusable="false" x="0px" y="0px" viewBox="0 0 100 100" width="15" height="15" class="icon outbound"><path fill="currentColor" d="M18.8,85.1h56l0,0c2.2,0,4-1.8,4-4v-32h-8v28h-48v-48h28v-8h-32l0,0c-2.2,0-4,1.8-4,4v56C14.8,83.3,16.6,85.1,18.8,85.1z"></path> <polygon fill="currentColor" points="45.7,48.7 51.3,54.3 77.2,28.5 77.2,37.2 85.2,37.2 85.2,14.9 62.8,14.9 62.8,22.9 71.5,22.9"></polygon></svg> <span class="sr-only">(opens new window)</span></span></a>, it is good to know before hand.</p> <h3 id="tcp-server"><a href="#tcp-server" class="header-anchor">#</a> TCP Server</h3> <p>Simple tcp server app,
+<code>server.go</code>:</p> <div class="language-go line-numbers-mode"><pre class="language-go"><code><span class="token comment">/*
+A very simple TCP server written in Go.
+*/</span>
+<span class="token keyword">package</span> main
+
+<span class="token keyword">import</span> <span class="token punctuation">(</span>
+	<span class="token string">&quot;fmt&quot;</span>
+	<span class="token string">&quot;net&quot;</span>
+	<span class="token string">&quot;strconv&quot;</span>
+<span class="token punctuation">)</span>
+
+<span class="token keyword">const</span> <span class="token punctuation">(</span>
+	addr <span class="token operator">=</span> <span class="token string">&quot;&quot;</span>
+	port <span class="token operator">=</span> <span class="token number">8000</span>
+<span class="token punctuation">)</span>
+
+<span class="token keyword">func</span> <span class="token function">main</span><span class="token punctuation">(</span><span class="token punctuation">)</span> <span class="token punctuation">{</span>
+
+	src <span class="token operator">:=</span> addr <span class="token operator">+</span> <span class="token string">&quot;:&quot;</span> <span class="token operator">+</span> strconv<span class="token punctuation">.</span><span class="token function">Itoa</span><span class="token punctuation">(</span>port<span class="token punctuation">)</span>
+	listener<span class="token punctuation">,</span> err <span class="token operator">:=</span> net<span class="token punctuation">.</span><span class="token function">Listen</span><span class="token punctuation">(</span><span class="token string">&quot;tcp&quot;</span><span class="token punctuation">,</span> src<span class="token punctuation">)</span>
+	<span class="token keyword">if</span> err <span class="token operator">!=</span> <span class="token boolean">nil</span> <span class="token punctuation">{</span>
+		fmt<span class="token punctuation">.</span><span class="token function">Println</span><span class="token punctuation">(</span>err<span class="token punctuation">.</span><span class="token function">Error</span><span class="token punctuation">(</span><span class="token punctuation">)</span><span class="token punctuation">)</span>
+	<span class="token punctuation">}</span>
+	<span class="token keyword">defer</span> listener<span class="token punctuation">.</span><span class="token function">Close</span><span class="token punctuation">(</span><span class="token punctuation">)</span>
+	fmt<span class="token punctuation">.</span><span class="token function">Printf</span><span class="token punctuation">(</span><span class="token string">&quot;TCP server start and listening on %s.\n&quot;</span><span class="token punctuation">,</span> src<span class="token punctuation">)</span>
+
+	<span class="token keyword">for</span> <span class="token punctuation">{</span>
+		conn<span class="token punctuation">,</span> err <span class="token operator">:=</span> listener<span class="token punctuation">.</span><span class="token function">Accept</span><span class="token punctuation">(</span><span class="token punctuation">)</span>
+		<span class="token keyword">if</span> err <span class="token operator">!=</span> <span class="token boolean">nil</span> <span class="token punctuation">{</span>
+			fmt<span class="token punctuation">.</span><span class="token function">Printf</span><span class="token punctuation">(</span><span class="token string">&quot;Some connection error: %s\n&quot;</span><span class="token punctuation">,</span> err<span class="token punctuation">)</span>
+		<span class="token punctuation">}</span>
+		fmt<span class="token punctuation">.</span><span class="token function">Println</span><span class="token punctuation">(</span><span class="token string">&quot;accpet new connection!&quot;</span><span class="token punctuation">)</span>
+		<span class="token keyword">go</span> <span class="token function">handleConnection</span><span class="token punctuation">(</span>conn<span class="token punctuation">)</span>
+	<span class="token punctuation">}</span>
+<span class="token punctuation">}</span>
+
+<span class="token keyword">func</span> <span class="token function">handleConnection</span><span class="token punctuation">(</span>conn net<span class="token punctuation">.</span>Conn<span class="token punctuation">)</span> <span class="token punctuation">{</span>
+	remoteAddr <span class="token operator">:=</span> conn<span class="token punctuation">.</span><span class="token function">RemoteAddr</span><span class="token punctuation">(</span><span class="token punctuation">)</span><span class="token punctuation">.</span><span class="token function">String</span><span class="token punctuation">(</span><span class="token punctuation">)</span>
+	fmt<span class="token punctuation">.</span><span class="token function">Println</span><span class="token punctuation">(</span><span class="token string">&quot;Client connected from: &quot;</span> <span class="token operator">+</span> remoteAddr<span class="token punctuation">)</span>
+
+	<span class="token comment">// Make a buffer to hold incoming data.</span>
+	buf <span class="token operator">:=</span> <span class="token function">make</span><span class="token punctuation">(</span><span class="token punctuation">[</span><span class="token punctuation">]</span><span class="token builtin">byte</span><span class="token punctuation">,</span> <span class="token number">1024</span><span class="token punctuation">)</span>
+	<span class="token keyword">for</span> <span class="token punctuation">{</span>
+		<span class="token comment">// Read the incoming connection into the buffer.</span>
+		reqLen<span class="token punctuation">,</span> err <span class="token operator">:=</span> conn<span class="token punctuation">.</span><span class="token function">Read</span><span class="token punctuation">(</span>buf<span class="token punctuation">)</span>
+		<span class="token keyword">if</span> err <span class="token operator">!=</span> <span class="token boolean">nil</span> <span class="token punctuation">{</span>
+
+			<span class="token keyword">if</span> err<span class="token punctuation">.</span><span class="token function">Error</span><span class="token punctuation">(</span><span class="token punctuation">)</span> <span class="token operator">==</span> <span class="token string">&quot;EOF&quot;</span> <span class="token punctuation">{</span>
+				fmt<span class="token punctuation">.</span><span class="token function">Println</span><span class="token punctuation">(</span><span class="token string">&quot;Disconned from &quot;</span><span class="token punctuation">,</span> remoteAddr<span class="token punctuation">)</span>
+				<span class="token keyword">break</span>
+			<span class="token punctuation">}</span> <span class="token keyword">else</span> <span class="token punctuation">{</span>
+				fmt<span class="token punctuation">.</span><span class="token function">Println</span><span class="token punctuation">(</span><span class="token string">&quot;Error reading:&quot;</span><span class="token punctuation">,</span> err<span class="token punctuation">.</span><span class="token function">Error</span><span class="token punctuation">(</span><span class="token punctuation">)</span><span class="token punctuation">)</span>
+				<span class="token keyword">break</span>
+			<span class="token punctuation">}</span>
+		<span class="token punctuation">}</span>
+		<span class="token comment">// Send a response back to person contacting us.</span>
+		conn<span class="token punctuation">.</span><span class="token function">Write</span><span class="token punctuation">(</span><span class="token punctuation">[</span><span class="token punctuation">]</span><span class="token function">byte</span><span class="token punctuation">(</span>fmt<span class="token punctuation">.</span><span class="token function">Sprintf</span><span class="token punctuation">(</span><span class="token string">&quot;message received: %v \n&quot;</span><span class="token punctuation">,</span> <span class="token function">string</span><span class="token punctuation">(</span>buf<span class="token punctuation">)</span><span class="token punctuation">)</span><span class="token punctuation">)</span><span class="token punctuation">)</span>
+
+		fmt<span class="token punctuation">.</span><span class="token function">Printf</span><span class="token punctuation">(</span><span class="token string">&quot;len: %d, recv: %s\n&quot;</span><span class="token punctuation">,</span> reqLen<span class="token punctuation">,</span> <span class="token function">string</span><span class="token punctuation">(</span>buf<span class="token punctuation">[</span><span class="token punctuation">:</span>reqLen<span class="token punctuation">]</span><span class="token punctuation">)</span><span class="token punctuation">)</span>
+	<span class="token punctuation">}</span>
+	<span class="token comment">// Close the connection when you're done with it.</span>
+	conn<span class="token punctuation">.</span><span class="token function">Close</span><span class="token punctuation">(</span><span class="token punctuation">)</span>
+<span class="token punctuation">}</span>
+</code></pre> <div class="line-numbers-wrapper"><span class="line-number">1</span><br><span class="line-number">2</span><br><span class="line-number">3</span><br><span class="line-number">4</span><br><span class="line-number">5</span><br><span class="line-number">6</span><br><span class="line-number">7</span><br><span class="line-number">8</span><br><span class="line-number">9</span><br><span class="line-number">10</span><br><span class="line-number">11</span><br><span class="line-number">12</span><br><span class="line-number">13</span><br><span class="line-number">14</span><br><span class="line-number">15</span><br><span class="line-number">16</span><br><span class="line-number">17</span><br><span class="line-number">18</span><br><span class="line-number">19</span><br><span class="line-number">20</span><br><span class="line-number">21</span><br><span class="line-number">22</span><br><span class="line-number">23</span><br><span class="line-number">24</span><br><span class="line-number">25</span><br><span class="line-number">26</span><br><span class="line-number">27</span><br><span class="line-number">28</span><br><span class="line-number">29</span><br><span class="line-number">30</span><br><span class="line-number">31</span><br><span class="line-number">32</span><br><span class="line-number">33</span><br><span class="line-number">34</span><br><span class="line-number">35</span><br><span class="line-number">36</span><br><span class="line-number">37</span><br><span class="line-number">38</span><br><span class="line-number">39</span><br><span class="line-number">40</span><br><span class="line-number">41</span><br><span class="line-number">42</span><br><span class="line-number">43</span><br><span class="line-number">44</span><br><span class="line-number">45</span><br><span class="line-number">46</span><br><span class="line-number">47</span><br><span class="line-number">48</span><br><span class="line-number">49</span><br><span class="line-number">50</span><br><span class="line-number">51</span><br><span class="line-number">52</span><br><span class="line-number">53</span><br><span class="line-number">54</span><br><span class="line-number">55</span><br><span class="line-number">56</span><br><span class="line-number">57</span><br><span class="line-number">58</span><br><span class="line-number">59</span><br><span class="line-number">60</span><br><span class="line-number">61</span><br><span class="line-number">62</span><br><span class="line-number">63</span><br></div></div><p>just hit <code>go run server.go</code> to get it started, then you can simply communicate with it using:</p> <div class="language-bash line-numbers-mode"><pre class="language-bash"><code>$ <span class="token function">nc</span> localhost <span class="token number">8000</span>
+hello world<span class="token operator">!</span>
+message received: hello world<span class="token operator">!</span>
+</code></pre> <div class="line-numbers-wrapper"><span class="line-number">1</span><br><span class="line-number">2</span><br><span class="line-number">3</span><br></div></div><p>That simple!</p> <h3 id="tcp-client"><a href="#tcp-client" class="header-anchor">#</a> TCP Client</h3> <p>a client code, it s going to loop against the server, <code>client.go</code>:</p> <div class="language-go line-numbers-mode"><pre class="language-go"><code><span class="token keyword">package</span> main
+
+<span class="token keyword">import</span> <span class="token punctuation">(</span>
+	<span class="token string">&quot;bufio&quot;</span>
+	<span class="token string">&quot;fmt&quot;</span>
+	<span class="token string">&quot;log&quot;</span>
+	<span class="token string">&quot;net&quot;</span>
+	<span class="token string">&quot;time&quot;</span>
+<span class="token punctuation">)</span>
+
+<span class="token keyword">func</span> <span class="token function">main</span><span class="token punctuation">(</span><span class="token punctuation">)</span> <span class="token punctuation">{</span>
+	<span class="token comment">// connect to this socket</span>
+	conn<span class="token punctuation">,</span> err <span class="token operator">:=</span> net<span class="token punctuation">.</span><span class="token function">Dial</span><span class="token punctuation">(</span><span class="token string">&quot;tcp&quot;</span><span class="token punctuation">,</span> <span class="token string">&quot;127.0.0.1:8000&quot;</span><span class="token punctuation">)</span>
+	<span class="token keyword">if</span> err <span class="token operator">!=</span> <span class="token boolean">nil</span> <span class="token punctuation">{</span>
+		log<span class="token punctuation">.</span><span class="token function">Fatal</span><span class="token punctuation">(</span>err<span class="token punctuation">)</span>
+	<span class="token punctuation">}</span>
+	<span class="token keyword">defer</span> conn<span class="token punctuation">.</span><span class="token function">Close</span><span class="token punctuation">(</span><span class="token punctuation">)</span>
+
+	<span class="token keyword">go</span> <span class="token keyword">func</span><span class="token punctuation">(</span><span class="token punctuation">)</span> <span class="token punctuation">{</span>
+		i <span class="token operator">:=</span> <span class="token number">0</span>
+		<span class="token keyword">for</span> <span class="token punctuation">{</span>
+			time<span class="token punctuation">.</span><span class="token function">Sleep</span><span class="token punctuation">(</span><span class="token number">1</span> <span class="token operator">*</span> time<span class="token punctuation">.</span>Second<span class="token punctuation">)</span>
+			conn<span class="token punctuation">.</span><span class="token function">Write</span><span class="token punctuation">(</span><span class="token punctuation">[</span><span class="token punctuation">]</span><span class="token function">byte</span><span class="token punctuation">(</span>fmt<span class="token punctuation">.</span><span class="token function">Sprintf</span><span class="token punctuation">(</span><span class="token string">&quot;msg index %v&quot;</span><span class="token punctuation">,</span> i<span class="token punctuation">)</span><span class="token punctuation">)</span><span class="token punctuation">)</span>
+			i<span class="token operator">++</span>
+		<span class="token punctuation">}</span>
+	<span class="token punctuation">}</span><span class="token punctuation">(</span><span class="token punctuation">)</span>
+	<span class="token comment">// send to socket</span>
+	<span class="token comment">// listen for reply</span>
+
+	reader <span class="token operator">:=</span> bufio<span class="token punctuation">.</span><span class="token function">NewReader</span><span class="token punctuation">(</span>conn<span class="token punctuation">)</span>
+	<span class="token keyword">for</span> i <span class="token operator">:=</span> <span class="token number">0</span><span class="token punctuation">;</span> i <span class="token operator">&lt;</span> <span class="token number">100</span><span class="token punctuation">;</span> i<span class="token operator">++</span> <span class="token punctuation">{</span>
+		message<span class="token punctuation">,</span> err <span class="token operator">:=</span> reader<span class="token punctuation">.</span><span class="token function">ReadBytes</span><span class="token punctuation">(</span><span class="token string">'\n'</span><span class="token punctuation">)</span>
+		fmt<span class="token punctuation">.</span><span class="token function">Println</span><span class="token punctuation">(</span><span class="token string">&quot;process&quot;</span><span class="token punctuation">,</span> i<span class="token punctuation">,</span> <span class="token function">string</span><span class="token punctuation">(</span>message<span class="token punctuation">)</span><span class="token punctuation">,</span> <span class="token string">&quot;error&quot;</span><span class="token punctuation">,</span> err<span class="token punctuation">)</span>
+	<span class="token punctuation">}</span>
+
+<span class="token punctuation">}</span>
+</code></pre> <div class="line-numbers-wrapper"><span class="line-number">1</span><br><span class="line-number">2</span><br><span class="line-number">3</span><br><span class="line-number">4</span><br><span class="line-number">5</span><br><span class="line-number">6</span><br><span class="line-number">7</span><br><span class="line-number">8</span><br><span class="line-number">9</span><br><span class="line-number">10</span><br><span class="line-number">11</span><br><span class="line-number">12</span><br><span class="line-number">13</span><br><span class="line-number">14</span><br><span class="line-number">15</span><br><span class="line-number">16</span><br><span class="line-number">17</span><br><span class="line-number">18</span><br><span class="line-number">19</span><br><span class="line-number">20</span><br><span class="line-number">21</span><br><span class="line-number">22</span><br><span class="line-number">23</span><br><span class="line-number">24</span><br><span class="line-number">25</span><br><span class="line-number">26</span><br><span class="line-number">27</span><br><span class="line-number">28</span><br><span class="line-number">29</span><br><span class="line-number">30</span><br><span class="line-number">31</span><br><span class="line-number">32</span><br><span class="line-number">33</span><br><span class="line-number">34</span><br><span class="line-number">35</span><br><span class="line-number">36</span><br></div></div><p>Hit <code>go run client.go</code> to get it executed!</p> <p>That's all, simple XD</p></div> <div class="content-time" data-v-a5c9dc12><time datetime="Jul 7, 2021" class="time-text" data-v-a5c9dc12>Created at: Jul 7, 2021
+    </time> <time datetime="Jul 7, 2021" class="time-text" data-v-a5c9dc12>Updated at: Jul 7, 2021
+    </time></div></article> <section class="flex-xb main info-nav" data-v-e08c9474 data-v-52fe94f0><!----> <a href="/posts/2020-4-7-firebase-notification-via-service-worker.html" class="flex-xb nav-item" data-v-e08c9474><div class="flex-xcc item-img" data-v-e08c9474><img data-src="https://i.picsum.photos/id/46/536/354.jpg?hmac=_rVZZs8S2g78_W5Enu4lCVBblD4GVLuEXF3fPLqR0u4" loading="lazy" alt="Firebase Cloud Messaging notification via service worker" class="img lazy" data-v-e08c9474></div> <article class="flex-ysc item-content" data-v-e08c9474><h2 class="content-title" data-v-e08c9474>Firebase Cloud Messaging notification via service worker</h2> <div class="content" data-v-e08c9474><p>I was pretty amazed by one of the local news media <a href="https://www.hket.com/" target="_blank" rel="noopener noreferrer">HKET<OutboundLink/></a>, as they was able to push a notification to my mobile phone with certain news update occasionally.</p>
+</div></article></a></section> <!----></section></section> <footer class="footer" data-v-5bc4f524 data-v-4fb7124e><nav class="link-list" data-v-5bc4f524><a href="https://vuepress.vuejs.org/" target="_blank" rel="noopener noreferrer" class="list-item" data-v-5bc4f524>Powered by Vuepress</a><a href="https://tolking.github.io/vuepress-theme-ououe/" target="_blank" rel="noopener noreferrer" class="list-item" data-v-5bc4f524>and Ououe theme</a></nav> <a href="/" class="copyright router-link-active" data-v-5bc4f524>Marvin CAI © 2021</a></footer></section><div class="global-ui"><!----><!----></div></div>
+    <script src="/assets/js/app.90a3f4cf.js" defer></script><script src="/assets/js/12.ec5ac930.js" defer></script>
+  </body>
+</html>
